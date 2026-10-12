@@ -147,9 +147,4 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: 'internal server error' });
 });
 
-const server = app.listen(3000, () => console.log('listening on :3000'));
-
-process.on('SIGTERM', async () => {
-  server.close();
-  await db.close();
-});
+export default app;
