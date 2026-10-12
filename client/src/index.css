@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bauhaus-red: #D32F2F;
+  --color-bauhaus-blue: #2196F3;
+  --color-bauhaus-yellow: #FFC107;
+  --color-paper: #F5F5F5;
+  --color-ink: #424242;
+}
+
+body {
+  @apply bg-paper text-ink;
+}

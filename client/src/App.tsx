@@ -1,0 +1,89 @@
+import { useEffect, useState } from 'react'
+import { getStats, listTickets, updateTicket } from './api/tickets'
+import type { Stats, Status, TicketPage } from './types'
+import FilterTabs, { type Filter } from './components/FilterTabs'
+import TicketRow from './components/TicketRow'
+import Pagination from './components/Pagination'
+
+const LIMIT = 10
+
+export default function App() {
+  const [filter, setFilter] = useState<Filter>('all')
+  const [page, setPage] = useState(1)
+  const [tickets, setTickets] = useState<TicketPage | null>(null)
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [version, setVersion] = useState(0) // bump to refetch
+
+  useEffect(() => {
+    let stale = false
+    Promise.all([
+      listTickets({ status: filter === 'all' ? undefined : filter, page, limit: LIMIT }),
+      getStats(),
+    ])
+      .then(([ticketPage, statsData]) => {
+        if (stale) return
+        setTickets(ticketPage)
+        setStats(statsData)
+        setError(null)
+      })
+      .catch((error: Error) => {
+        if (!stale) setError(error.message)
+      })
+    return () => {
+      stale = true
+    }
+  }, [filter, page, version])
+
+  // If the last item on the last page moved away, step back a page.
+  useEffect(() => {
+    if (tickets && tickets.data.length === 0 && page > 1) {
+      setPage(Math.max(1, tickets.totalPages))
+    }
+  }, [tickets, page])
+
+  const refresh = () => setVersion((currentVersion) => currentVersion + 1)
+
+  const changeFilter = (nextFilter: Filter) => {
+    setFilter(nextFilter)
+    setPage(1)
+  }
+
+  async function changeStatus(id: string, status: Status) {
+    try {
+      await updateTicket(id, { status })
+      refresh()
+    } catch (error) {
+      setError((error as Error).message)
+    }
+  }
+
+  return (
+    <main className="mx-auto max-w-2xl px-4 py-10">
+      <h1 className="mb-6 flex items-center gap-3 text-2xl font-bold">
+        <span className="size-4 bg-bauhaus-red" />
+        Tickets
+      </h1>
+
+      {/* TicketForm goes here (next step) */}
+
+      <FilterTabs value={filter} onChange={changeFilter} stats={stats} />
+
+      {error && (
+        <p className="mt-4 border-2 border-bauhaus-red bg-white px-3 py-2 text-sm font-bold text-bauhaus-red">
+          {error}
+        </p>
+      )}
+
+      <div className="mt-4 space-y-3">
+        {!tickets && !error && <p className="text-sm">Loading…</p>}
+        {tickets?.data.length === 0 && <p className="text-sm">No tickets here yet.</p>}
+        {tickets?.data.map((t) => (
+          <TicketRow key={t.id} ticket={t} onStatus={changeStatus} />
+        ))}
+      </div>
+
+      {tickets && <Pagination page={tickets.page} totalPages={tickets.totalPages} onChange={setPage} />}
+    </main>
+  )
+}
