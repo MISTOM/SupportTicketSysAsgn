@@ -1,50 +1,36 @@
 import type { Priority, Status, Ticket } from '../types'
-
-const STATUSES: { key: Status; label: string; active: string }[] = [
-  { key: 'open', label: 'Open', active: 'bg-bauhaus-blue text-white' },
-  { key: 'in_progress', label: 'In progress', active: 'bg-bauhaus-yellow text-ink' },
-  { key: 'closed', label: 'Closed', active: 'bg-ink text-white' },
-]
-
-// Priority as a shape: circle = low, square = medium, triangle = high
-const SHAPE: Record<Priority, string> = {
-  low: 'rounded-full',
-  medium: '',
-  high: '[clip-path:polygon(50%_0,0_100%,100%_100%)]',
-}
+import { PriorityMark, StatusButtons } from './controls'
 
 interface Props {
   ticket: Ticket
-  onStatus: (id: string, status: Status) => void
+  onOpen: (ticket: Ticket) => void
+  onPatch: (id: string, patch: { status?: Status; priority?: Priority }) => void
 }
 
-export default function TicketRow({ ticket, onStatus }: Props) {
+export default function TicketRow({ ticket, onOpen, onPatch }: Props) {
   return (
-    <article className="border-2 border-ink bg-white p-4">
+    <article
+      onClick={() => onOpen(ticket)}
+      className="cursor-pointer border-2 border-ink bg-white p-4 hover:bg-paper"
+    >
       <div className="flex items-start justify-between gap-4">
-        <h2 className="font-bold">{ticket.title}</h2>
+        <h2>
+          <button type="button" className="cursor-pointer text-left font-bold">
+            {ticket.title}
+          </button>
+        </h2>
         <span className="flex shrink-0 items-center gap-2 text-xs font-bold uppercase">
-          <span className={`inline-block size-3 bg-bauhaus-red ${SHAPE[ticket.priority]}`} />
+          <PriorityMark priority={ticket.priority} />
           {ticket.priority}
         </span>
       </div>
 
-      {ticket.description && <p className="mt-1 text-sm">{ticket.description}</p>}
+      {ticket.description && <p className="mt-1 line-clamp-1 text-sm">{ticket.description}</p>}
 
       <div className="mt-3 flex items-center justify-between gap-4">
-        <div className="flex border-2 border-ink">
-          {STATUSES.map((s) => (
-            <button
-              key={s.key}
-              onClick={() => ticket.status !== s.key && onStatus(ticket.id, s.key)}
-              aria-pressed={ticket.status === s.key}
-              className={`cursor-pointer border-r-2 border-ink px-2 py-1 text-xs font-bold last:border-r-0 ${
-                ticket.status === s.key ? s.active : 'bg-white hover:bg-paper'
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
+        {/* stop the click so changing status doesn't also open the modal */}
+        <div onClick={(e) => e.stopPropagation()}>
+          <StatusButtons value={ticket.status} onChange={(status) => onPatch(ticket.id, { status })} />
         </div>
         <time className="text-xs" dateTime={ticket.createdAt}>
           {new Date(ticket.createdAt).toLocaleDateString()}
