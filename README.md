@@ -41,6 +41,7 @@ See [client/README.md](client/README.md) and [server/README.md](server/README.md
 
 ## Decisions & Tradeoffs
 
+Used Prisma ORM for database access and easy schema management.
 I kept the interface to one page so tickets, filters, and ticket creation are easy to reach.
 I added a get-one-ticket endpoint in addition to the requested endpoints, so a ticket can be opened for its full details.
 I used UUIDs for ticket IDs instead of sequential numbers.
