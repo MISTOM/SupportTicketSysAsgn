@@ -67,10 +67,11 @@ app.get(
   '/tickets',
   async (req, res) => {
     const { status } = req.query;
+    console.log('GET /tickets', { status, query: req.query });
     if (status !== undefined && !isStatus(status)) {
       return res.status(400).json({ error: `status must be one of ${STATUSES.join(', ')}` });
     }
-    
+
     // Pagination
     const page = Math.max(1, Number.parseInt(String(req.query.page ?? '1'), 10) || 1);
     const limit = Math.min(100, Math.max(1, Number.parseInt(String(req.query.limit ?? '10'), 10) || 10));
@@ -97,11 +98,27 @@ app.get(
   },
 );
 
+// GET /tickets/:id
+app.get(
+  '/tickets/:id',
+  async (req, res) => {
+    const id = String(req.params.id);
+    console.log('GET /ticket/:id', { id });
+    if (!UUID_REGEX.test(id)) return res.status(400).json({ error: 'invalid id' });
+
+    const ticket = await db.orm.public.Ticket.where({ id }).first();
+    if (!ticket) return res.status(404).json({ error: 'ticket not found' });
+
+    res.json(toJson(ticket));
+  },
+);
+
 // PATCH /tickets/:id
 app.patch(
   '/tickets/:id',
   async (req, res) => {
     const id = String(req.params.id);
+    console.log('PATCH /tickets/:id', { id, body: req.body });
     if (!UUID_REGEX.test(id)) return res.status(400).json({ error: 'invalid id' });
 
     const { status, priority } = req.body ?? {};
