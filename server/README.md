@@ -31,7 +31,7 @@ The API listens on `http://localhost:3000`.
 - `GET /tickets?status=&page=&limit=` — list tickets, optionally filtered by status and paginated.
 - `GET /tickets/:id` — get one ticket by its UUID.
 - `PATCH /tickets/:id` — update a ticket's status, priority, or both.
-- `GET /tickets/stats` — get ticket counts grouped by status, for example `{"open":2,"in_progress":1,"closed":0}`.
+- `GET /tickets/stats` — get ticket counts grouped by status, for 
 
 Valid statuses are `open`, `in_progress`, and `closed`. Valid priorities are `low`, `medium`, and `high`. The list endpoint defaults to page 1 with 10 tickets per page and limits page size to 100.
 
